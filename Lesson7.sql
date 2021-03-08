@@ -121,14 +121,25 @@ CREATE TABLE storehouses_products (
 
 -- 1. Составьте список пользователей users, которые осуществили хотя бы один заказ orders в интернет магазине.
 
-select id from users where id in (select distinct user_id from orders);
+-- Решение без join
+-- select id from users where id in (select distinct user_id from orders);
+
+select u.name as `Реальные заказчики`
+from users as u join orders
+where u.id = orders.user_id
+group by u.id;
 
 -- 2. Выведите список товаров products и разделов catalogs, который соответствует товару.
+
 -- Я немного неуверен, что понял верно задание, поэтому пишу, что понял я.
 -- Вывести список товаров и каким типом товара он является (данные из таблици каталогов).
 
-select name, (select name from catalogs where products.catalog_id = id) as type, 
-description, price from products;
+-- решение без join
+-- select name, (select name from catalogs where products.catalog_id = id) as type, description, price from products;
+
+select p.name, c.name as type, p.description, p.price 
+from products as p join catalogs as c 
+where c.id = p.catalog_id
 
 -- 3. (по желанию) Пусть имеется таблица рейсов flights (id, from, to) и таблица городов cities (label, name). 
 -- Поля from, to и label содержат английские названия городов, поле name — русское. 
@@ -159,9 +170,29 @@ VALUES
   ('kazan', 'Казань'),
   ('omsk', 'Омск');
   
- select `from` from flights;
- 
+/* решение без join 
 select 
     (select name from cities where flights.`from` = label) as Откуда,
     (select name from cities where flights.`to` = label) as Куда 
-from flights;
+from flights; */
+ 
+ /* решение я уже подсмотрел в записи вебинара, сам бы я не додумался.
+ Я хотел сделать решение через слепление вот этих селектов
+ 
+ select f.id, c.name as откуда
+from flights as f join cities as c
+on f.`from` = c.label 
+order by f.id;
+
+select c.name as куда
+from flights as f join cities as c
+on f.`to` = c.label 
+order by f.id;
+
+но у меня не вышло */
+ 
+ select f.id as рейс, c1.name as откуда, c2.name as куда
+from flights as f join cities as c1 join cities as c2
+on f.`from` = c1.label and f.`to` = c2.label
+order by f.id
+ 
